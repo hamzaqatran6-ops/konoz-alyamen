@@ -1,0 +1,65 @@
+[
+  {
+    "id": 1774389827000,
+    "name": "عسل عرسان",
+    "price": "1500",
+    "image": "http://localhost:5000/uploads/1774389826974-Screenshot 2026-03-24 033606.png",
+    "isOffer": true
+  },
+  {
+    "id": 1774389860620,
+    "name": "عسل خارجي",
+    "price": "10000",
+    "image": "http://localhost:5000/uploads/1774389860596-Screenshot 2026-03-24 033419.png",
+    "isOffer": false
+  },
+  {
+    "id": 1774568076022,
+    "name": "عسل مروعي",
+    "price": "17000",
+    "image": "http://localhost:5000/uploads/1774568076002-Screenshot 2026-03-24 085507.png",
+    "isOffer": true
+  },
+  {
+    "id": 1774568387878,
+    "name": "عسل فاخر ",
+    "price": "2000",
+    "image": "http://localhost:5000/uploads/1774568387870-Screenshot 2026-02-22 024542.png",
+    "isOffer": true
+  },
+  {
+    "id": 1774568756575,
+    "name": "عسل درجة اولى ",
+    "price": "20000",
+    "image": "http://localhost:5000/uploads/1774568756562-Screenshot 2026-02-21 231312.png",
+    "isOffer": true
+  },
+  {
+    "id": 1774569015773,
+    "name": "حمزة",
+    "price": "1500",
+    "image": "http://localhost:5000/uploads/1774569015764-Screenshot 2026-02-21 231312.png",
+    "isOffer": true
+  },
+  {
+    "id": 1774647405723,
+    "name": "عسل اجنبي",
+    "price": "14000",
+    "image": "http://localhost:5000/uploads/1774647405703-Screenshot 2026-02-22 030321.png",
+    "isOffer": true
+  },
+  {
+    "id": 1774650060412,
+    "name": "عسل راجحي",
+    "price": "30000",
+    "isOffer": false,
+    "image": "http://localhost:5000/uploads/1774652908427-Screenshot 2026-02-22 023955.png"
+  },
+  {
+    "id": 1775943757881,
+    "name": "ننن",
+    "price": "44",
+    "image": "http://localhost:5000/uploads/1775943757875-Screenshot 2026-02-22 023955.png",
+    "isOffer": true
+  }
+]
