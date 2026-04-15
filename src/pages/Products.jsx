@@ -1,23 +1,24 @@
 import { useEffect, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import ProductCard from "../components/ProductCard"
+import API_URL from "../config"
 
 // SVG Icons
 const SearchIcon = ({ className, size = 20 }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+    <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
   </svg>
 )
 
 const DropletIcon = ({ className, size = 18 }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/>
+    <path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z" />
   </svg>
 )
 
 const SparklesIcon = ({ className, size = 16 }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/>
+    <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" /><path d="M5 3v4" /><path d="M19 17v4" /><path d="M3 5h4" /><path d="M17 19h4" />
   </svg>
 )
 
@@ -28,7 +29,7 @@ function Products() {
   const [filter, setFilter] = useState("all") // all, offers
 
   useEffect(() => {
-    fetch("http://localhost:5000/products")
+    fetch(`${API_URL}/products`)
       .then(res => res.json())
       .then(data => {
         setProducts(data)
@@ -57,7 +58,7 @@ function Products() {
 
   return (
     <div className="min-h-screen bg-gray-50/50 pb-20" dir="rtl">
-      
+
       {/* 🌟 Premium Hero Section */}
       <div className="relative bg-gradient-to-b from-amber-50 to-transparent pt-12 pb-16 overflow-hidden">
         {/* Soft floating background elements */}
@@ -67,7 +68,7 @@ function Products() {
         </div>
 
         <div className="container mx-auto px-4 relative z-10 text-center">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
@@ -89,7 +90,7 @@ function Products() {
 
       {/* 🔍 Search & Filters Bar */}
       <div className="container mx-auto px-4 -mt-8 relative z-20 mb-12">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
@@ -113,21 +114,19 @@ function Products() {
           <div className="flex gap-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0 hide-scrollbar justify-start md:justify-end">
             <button
               onClick={() => setFilter("all")}
-              className={`flex-shrink-0 px-6 py-3 rounded-xl font-medium transition-all ${
-                filter === "all" 
-                  ? "bg-amber-500 text-white shadow-md shadow-amber-500/20" 
-                  : "bg-gray-50 text-gray-600 hover:bg-gray-100"
-              }`}
+              className={`flex-shrink-0 px-6 py-3 rounded-xl font-medium transition-all ${filter === "all"
+                ? "bg-amber-500 text-white shadow-md shadow-amber-500/20"
+                : "bg-gray-50 text-gray-600 hover:bg-gray-100"
+                }`}
             >
               الكل
             </button>
             <button
               onClick={() => setFilter("offers")}
-              className={`flex-shrink-0 flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all ${
-                filter === "offers" 
-                  ? "bg-red-500 text-white shadow-md shadow-red-500/20" 
-                  : "bg-gray-50 text-gray-600 hover:bg-red-50"
-              }`}
+              className={`flex-shrink-0 flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all ${filter === "offers"
+                ? "bg-red-500 text-white shadow-md shadow-red-500/20"
+                : "bg-gray-50 text-gray-600 hover:bg-red-50"
+                }`}
             >
               <DropletIcon size={18} />
               عروض مميزة
@@ -144,7 +143,7 @@ function Products() {
             <p className="text-gray-500 font-medium animate-pulse">جاري تحضير المنتجات الفاخرة...</p>
           </div>
         ) : filteredProducts.length === 0 ? (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             className="bg-white rounded-3xl p-12 text-center max-w-lg mx-auto shadow-sm border border-gray-100"
@@ -156,15 +155,15 @@ function Products() {
             <p className="text-gray-500">
               لم نعثر على منتجات تطابق بحثك. جرب استخدام كلمات مختلفة.
             </p>
-            <button 
-              onClick={() => {setSearchQuery(""); setFilter("all");}}
+            <button
+              onClick={() => { setSearchQuery(""); setFilter("all"); }}
               className="mt-6 text-amber-600 font-semibold hover:text-amber-700"
             >
               عرض جميع المنتجات &rarr;
             </button>
           </motion.div>
         ) : (
-          <motion.div 
+          <motion.div
             layout
             className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 xl:gap-8"
           >

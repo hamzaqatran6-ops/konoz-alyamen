@@ -23,6 +23,15 @@ function Login() {
   const redirect = searchParams.get("redirect") || "/"
   const isAdminLogin = searchParams.get("admin") === "true"
 
+  // 🧹 إفراغ الحقول عند تحميل الصفحة لضمان عدم بقاء بيانات قديمة (مثل إكمال المتصفح التلقائي)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setEmail("")
+      setPassword("")
+    }, 100)
+    return () => clearTimeout(timer)
+  }, [])
+
   const handleAuth = async (e) => {
     e.preventDefault()
 
@@ -70,6 +79,10 @@ function Login() {
       if (err.code === 'auth/email-already-in-use') errorMsg = "البريد الإلكتروني مستخدم مسبقاً."
       if (err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') errorMsg = "البريد الإلكتروني أو كلمة المرور غير صحيحة."
       toast.error("❌ " + errorMsg)
+      
+      // 🧹 إفراغ الحقول عند الخطأ لضمان الخصوصية
+      setEmail("")
+      setPassword("")
     } finally {
       setIsLoading(false)
     }
@@ -130,7 +143,7 @@ function Login() {
             </p>
           </div>
 
-          <form onSubmit={handleAuth} className="space-y-5">
+          <form onSubmit={handleAuth} className="space-y-5" autoComplete="off">
             <div className="relative">
               <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-amber-600">
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -144,6 +157,7 @@ function Login() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                autoComplete="new-password"
               />
             </div>
 
@@ -160,6 +174,7 @@ function Login() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                autoComplete="new-password"
               />
             </div>
 

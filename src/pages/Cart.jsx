@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { Link, useNavigate } from "react-router-dom"
 import { onAuthStateChanged } from "firebase/auth"
 import { auth } from "../firebase"
+import API_URL from "../config"
 
 function Cart() {
   const [cart, setCart] = useState([])
@@ -103,7 +104,7 @@ function Cart() {
     toast.loading("جاري إرسال الطلب...", { id: "submit" });
 
     try {
-      await fetch("http://localhost:5000/orders", {
+      await fetch(`${API_URL}/orders`, {
         method: "POST",
         body: formData
       })

@@ -55,7 +55,7 @@ app.post("/products", upload.single("image"), (req, res) => {
     id: Date.now(),
     name: req.body.name,
     price: req.body.price,
-    image: req.file ? `http://localhost:5000/uploads/${req.file.filename}` : null,
+    image: req.file ? `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}` : null,
     isOffer: req.body.isOffer === "true",
   }
 
@@ -85,7 +85,7 @@ app.put("/products/:id", upload.single("image"), (req, res) => {
         price: req.body.price || p.price,
         isOffer: req.body.isOffer === "true",
         image: req.file
-          ? `http://localhost:5000/uploads/${req.file.filename}`
+          ? `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`
           : p.image,
       }
     }
@@ -108,7 +108,7 @@ app.post("/orders", upload.single("paymentImage"), (req, res) => {
     paymentMethod: req.body.paymentMethod,
     cart: JSON.parse(req.body.cart),
     paymentImage: req.file
-      ? `http://localhost:5000/uploads/${req.file.filename}`
+      ? `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`
       : null,
     status: "pending",
   }

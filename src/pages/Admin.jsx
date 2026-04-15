@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import API_URL from "../config";
 
 function Admin() {
   const navigate = useNavigate();
@@ -28,7 +29,7 @@ function Admin() {
   const [showProductDeleteConfirm, setShowProductDeleteConfirm] = useState(null);
 
   const fetchProducts = () => {
-    fetch("http://localhost:5000/products")
+    fetch(`${API_URL}/products`)
       .then((res) => res.json())
       .then((data) => setProducts(data))
       .catch(err => console.error("Error fetching products:", err));
@@ -38,7 +39,7 @@ function Admin() {
   const lastOrderId = useRef(null);
 
   const fetchOrders = () => {
-    fetch("http://localhost:5000/orders")
+    fetch(`${API_URL}/orders`)
       .then((res) => res.json())
       .then((data) => {
         const latest = data[data.length - 1];
@@ -113,10 +114,10 @@ function Admin() {
     if (image) formData.append("image", image);
 
     if (editId) {
-      await fetch(`http://localhost:5000/products/${editId}`, { method: "PUT", body: formData });
+      await fetch(`${API_URL}/products/${editId}`, { method: "PUT", body: formData });
       toast.success("تم التحديث بنجاح");
     } else {
-      await fetch("http://localhost:5000/products", { method: "POST", body: formData });
+      await fetch(`${API_URL}/products`, { method: "POST", body: formData });
       toast.success("تمت الإضافة بنجاح");
     }
     fetchProducts();
@@ -125,7 +126,7 @@ function Admin() {
 
   const deleteProduct = async (id) => {
     try {
-      await fetch(`http://localhost:5000/products/${id}`, { method: "DELETE" });
+      await fetch(`${API_URL}/products/${id}`, { method: "DELETE" });
       fetchProducts();
       toast.success("تم حذف المنتج بنجاح");
       setShowProductDeleteConfirm(null);
@@ -150,7 +151,7 @@ function Admin() {
   // === Order Actions ===
   const acceptOrder = async (id) => {
     try {
-      await fetch(`http://localhost:5000/orders/${id}`, { method: "PUT" });
+      await fetch(`${API_URL}/orders/${id}`, { method: "PUT" });
       fetchOrders();
       toast.success("تم قبول الطلب");
     } catch { toast.error("حدث خطأ"); }
@@ -192,7 +193,7 @@ function Admin() {
 
   const deleteAllOrders = async () => {
     try {
-      await fetch("http://localhost:5000/orders", { method: "DELETE" });
+      await fetch(`${API_URL}/orders`, { method: "DELETE" });
       setOrders([]);
       setSelectedOrders([]);
       toast.success("تم حذف جميع الطلبات");
