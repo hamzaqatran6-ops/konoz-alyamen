@@ -67,14 +67,15 @@ function Navbar() {
   }, [])
 
   const checkAdmin = () => {
-    const localAdmin = JSON.parse(localStorage.getItem("adminUser"))
-    if (localAdmin && localAdmin.isAdmin) {
+    const localAdmin = JSON.parse(sessionStorage.getItem("adminUser"))
+    if (localAdmin && localAdmin.isAdmin && localAdmin.token) {
       setIsAdmin(true)
       setIsLoggedIn(true)
       return true
     }
     return false
   }
+
 
   useEffect(() => {
     checkAdmin()
@@ -114,16 +115,19 @@ function Navbar() {
 
   const handleLogout = async () => {
     try {
-      localStorage.removeItem("adminUser")
+      sessionStorage.removeItem("adminUser")
+      localStorage.removeItem("adminUser") // For safety/backward compatibility
       setIsAdmin(false)
       setIsLoggedIn(false)
       await signOut(auth)
       window.location.href = "/"
     } catch {
+      sessionStorage.removeItem("adminUser")
       localStorage.removeItem("adminUser")
       window.location.href = "/"
     }
   }
+
 
   // Don't show navbar on admin page
   if (location.pathname === "/admin") return null

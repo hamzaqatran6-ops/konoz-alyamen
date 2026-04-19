@@ -17,11 +17,12 @@ function App() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // التحقق من الأدمن المحلي أولاً
-    const adminUser = JSON.parse(localStorage.getItem("adminUser"))
-    if (adminUser && adminUser.isAdmin) {
-      setUser({ email: adminUser.email, isAdmin: true, isLocalAdmin: true })
+    // التحقق من الأدمن المحلي أولاً (استخدام sessionStorage لزيادة الأمان)
+    const adminUser = JSON.parse(sessionStorage.getItem("adminUser"))
+    if (adminUser && adminUser.isAdmin && adminUser.token) {
+      setUser({ email: adminUser.email, isAdmin: true, isLocalAdmin: true, token: adminUser.token })
     }
+
 
     const unsubscribe = onAuthStateChanged(auth, (u) => {
       const localAdmin = JSON.parse(localStorage.getItem("adminUser"))
@@ -36,11 +37,12 @@ function App() {
     })
 
     const handleAdminLogin = () => {
-      const adminUser = JSON.parse(localStorage.getItem("adminUser"))
-      if (adminUser && adminUser.isAdmin) {
-        setUser({ email: adminUser.email, isAdmin: true, isLocalAdmin: true })
+      const adminUser = JSON.parse(sessionStorage.getItem("adminUser"))
+      if (adminUser && adminUser.isAdmin && adminUser.token) {
+        setUser({ email: adminUser.email, isAdmin: true, isLocalAdmin: true, token: adminUser.token })
       }
     }
+
 
     window.addEventListener("adminLogin", handleAdminLogin)
     return () => {
@@ -51,8 +53,9 @@ function App() {
 
   const isAdmin = () => {
     if (!user) return false
-    return user.isLocalAdmin === true
+    return user.isLocalAdmin === true && !!user.token
   }
+
 
   if (loading) return <p className="text-center mt-10">جاري التحميل...</p>
 

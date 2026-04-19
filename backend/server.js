@@ -1,15 +1,89 @@
-const express = require("express")
-const cors = require("cors")
-const multer = require("multer")
-const fs = require("fs")
-const path = require("path")
+const helmet = require("helmet")
+const rateLimit = require("express-rate-limit")
 
 const app = express()
 
-app.use(cors())
+// 🛡️ الطبقة 2: حماية العناوين (Security Headers)
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" } // للسماح بعرض الصور من السيرفر
+}))
+
+// 🌐 الطبقة 4: قواعد الوصول (CORS) - تقييد المصادر
+const allowedOrigins = [
+  "http://localhost:5173", // تطوير
+  "http://localhost:3000",
+  "https://konoz-yemen.vercel.app", // استبدله برابطك الحقيقي
+  /\.vercel\.app$/ // السماح بجميع روابط vercel الفرعية
+]
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.some(pattern => typeof pattern === 'string' ? pattern === origin : pattern.test(origin))) {
+      callback(null, true)
+    } else {
+      callback(new Error("Not allowed by CORS"))
+    }
+  }
+}))
+
 app.use(express.json())
 
+// 🛑 الطبقة 3: منع الهجمات العشوائية (Rate Limiting)
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 دقيقة
+  max: 100, // حد أقصى 100 طلب من كل IP
+  message: { message: "عدد طلبات كبير جداً، يرجى المحاولة لاحقاً" }
+})
+
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10, // 10 محاولات دخول فقط كل 15 دقيقة
+  message: { message: "محاولات دخول كثيرة خاطئة، يرجى الانتظار 15 دقيقة" }
+})
+
+app.use("/orders", apiLimiter) // حماية قسم الطلبات من الإغراق (Spam)
+
+
+// 🔒 إعدادات الحماية (Admin Security)
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME || "hamza"
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "2120"
+const ADMIN_SECRET = process.env.ADMIN_SECRET || "hamza-secret-token-2026"
+
+// Middleware للتحقق من الصلاحيات
+const authMiddleware = (req, res, next) => {
+  const token = req.headers.authorization
+  if (token === ADMIN_SECRET) {
+    next()
+  } else {
+    res.status(401).json({ message: "غير مصرح لك بالوصول (Unauthorized)" })
+  }
+}
+
+
+// 🧼 الطبقة 5: تنظيف البيانات (Input Sanitization)
+const sanitize = (text) => {
+  if (typeof text !== "string") return text
+  return text
+    .replace(/<script\b[^>]*>([\s\S]*?)<\/script>/gmi, "") // حذف السكربتات
+    .replace(/<\/?[^>]+(>|$)/g, "") // حذف أي تاجات HTML
+    .trim()
+}
+
+const sanitizeMiddleware = (req, res, next) => {
+  if (req.body) {
+    for (const key in req.body) {
+      if (typeof req.body[key] === "string") {
+        req.body[key] = sanitize(req.body[key])
+      }
+    }
+  }
+  next()
+}
+
+app.use(sanitizeMiddleware)
+
 // 🔥 تأكد من المسارات
+
 const DATA_PATH = path.join(__dirname, "data")
 const UPLOADS_PATH = path.join(__dirname, "uploads")
 
@@ -23,7 +97,18 @@ const storage = multer.diskStorage({
   },
 })
 
-const upload = multer({ storage })
+const upload = multer({ 
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max
+  fileFilter: (req, file, cb) => {
+    const filetypes = /jpeg|jpg|png|webp/
+    const mimetype = filetypes.test(file.mimetype)
+    const extname = filetypes.test(path.extname(file.originalname).toLowerCase())
+    if (mimetype && extname) return cb(null, true)
+    cb(new Error("Error: File upload only supports images (jpeg, jpg, png, webp)"))
+  }
+})
+
 
 // 📂 قراءة وكتابة
 const readJSON = (file) => {
@@ -42,13 +127,24 @@ app.get("/", (req, res) => {
   res.send("Server is working ✅")
 })
 
+// 🔐 تسجيل دخول الأدمن
+app.post("/login", loginLimiter, (req, res) => {
+  const { email, password } = req.body
+  if (email === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+    res.json({ token: ADMIN_SECRET, isAdmin: true })
+  } else {
+    res.status(401).json({ message: "بيانات الدخول غير صحيحة" })
+  }
+})
+
+
 // 🛍️ المنتجات
 app.get("/products", (req, res) => {
   res.json(readJSON("products.json"))
 })
 
 // ➕ إضافة
-app.post("/products", upload.single("image"), (req, res) => {
+app.post("/products", authMiddleware, upload.single("image"), (req, res) => {
   const products = readJSON("products.json")
 
   const newProduct = {
@@ -66,7 +162,7 @@ app.post("/products", upload.single("image"), (req, res) => {
 })
 
 // ❌ حذف
-app.delete("/products/:id", (req, res) => {
+app.delete("/products/:id", authMiddleware, (req, res) => {
   const products = readJSON("products.json")
   const newProducts = products.filter(p => p.id != req.params.id)
   saveJSON("products.json", newProducts)
@@ -74,7 +170,7 @@ app.delete("/products/:id", (req, res) => {
 })
 
 // ✏️ تعديل
-app.put("/products/:id", upload.single("image"), (req, res) => {
+app.put("/products/:id", authMiddleware, upload.single("image"), (req, res) => {
   const products = readJSON("products.json")
 
   const updated = products.map(p => {
@@ -120,7 +216,7 @@ app.post("/orders", upload.single("paymentImage"), (req, res) => {
 })
 
 // 📥 جلب الطلبات (🔥 أهم نقطة)
-app.get("/orders", (req, res) => {
+app.get("/orders", authMiddleware, (req, res) => {
   res.json(readJSON("orders.json"))
 })
 
@@ -128,7 +224,7 @@ app.get("/orders", (req, res) => {
 app.use("/uploads", express.static(UPLOADS_PATH))
 
 // ✅ قبول الطلب
-app.put("/orders/:id", (req, res) => {
+app.put("/orders/:id", authMiddleware, (req, res) => {
   const orders = readJSON("orders.json")
 
   const updated = orders.map(order =>
@@ -143,7 +239,7 @@ app.put("/orders/:id", (req, res) => {
 })
 
 // ❌ حذف طلب واحد
-app.delete("/orders/:id", (req, res) => {
+app.delete("/orders/:id", authMiddleware, (req, res) => {
   const orders = readJSON("orders.json")
   const newOrders = orders.filter(o => o.id != req.params.id)
   saveJSON("orders.json", newOrders)
@@ -151,13 +247,13 @@ app.delete("/orders/:id", (req, res) => {
 })
 
 // 🗑️ حذف جميع الطلبات
-app.delete("/orders", (req, res) => {
+app.delete("/orders", authMiddleware, (req, res) => {
   saveJSON("orders.json", [])
   res.json({ message: "All orders deleted" })
 })
 
 // 🔄 تحديث حالة الطلب (قبول / رفض / أرشفة)
-app.patch("/orders/:id", (req, res) => {
+app.patch("/orders/:id", authMiddleware, (req, res) => {
   const orders = readJSON("orders.json")
   const { status } = req.body
 
@@ -171,7 +267,13 @@ app.patch("/orders/:id", (req, res) => {
   res.json({ message: "Order status updated" })
 })
 
+// 🛡️ الطبقة 7: معالجة الأخطاء الآمنة (Global Error Handler)
+app.use((err, req, res, next) => {
+  console.error(err.stack)
+  res.status(500).json({ message: "حدث خطأ داخلي في السيرفر، تم تسجيل المشكلة" })
+})
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
-});
+});

@@ -11,6 +11,23 @@ function Admin() {
   const [orders, setOrders] = useState([]);
   const [activeTab, setActiveTab] = useState("dashboard");
 
+  // 🛡️ المساعدة في التوثيق (Auth Helpers)
+  const handleUnauthorized = () => {
+    sessionStorage.removeItem("adminUser");
+    toast.error("انتهت الجلسة أو غير مصرح لك");
+    window.location.href = "/login?admin=true";
+  };
+
+  const getAuthHeaders = (contentType = "application/json") => {
+    const adminUser = JSON.parse(sessionStorage.getItem("adminUser"));
+    const headers = {};
+    if (contentType) headers["Content-Type"] = contentType;
+    if (adminUser?.token) headers["Authorization"] = adminUser.token;
+    return headers;
+  };
+
+
+
   // Product form
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
@@ -30,19 +47,32 @@ function Admin() {
 
   const fetchProducts = () => {
     fetch(`${API_URL}/products`)
-      .then((res) => res.json())
-      .then((data) => setProducts(data))
+      .then((res) => {
+        if (res.status === 401) return handleUnauthorized();
+        return res.json();
+      })
+      .then((data) => {
+        if (data) setProducts(data);
+      })
       .catch(err => console.error("Error fetching products:", err));
   };
+
 
   const isFirstLoad = useRef(true);
   const lastOrderId = useRef(null);
 
   const fetchOrders = () => {
-    fetch(`${API_URL}/orders`)
-      .then((res) => res.json())
+    fetch(`${API_URL}/orders`, {
+      headers: getAuthHeaders()
+    })
+      .then((res) => {
+        if (res.status === 401) return handleUnauthorized();
+        return res.json();
+      })
       .then((data) => {
+        if (!data) return;
         const latest = data[data.length - 1];
+
 
         if (isFirstLoad.current) {
           isFirstLoad.current = false;
@@ -114,23 +144,39 @@ function Admin() {
     if (image) formData.append("image", image);
 
     if (editId) {
-      await fetch(`${API_URL}/products/${editId}`, { method: "PUT", body: formData });
+      const res = await fetch(`${API_URL}/products/${editId}`, { 
+        method: "PUT", 
+        headers: getAuthHeaders(null), // FormData handle content-type
+        body: formData 
+      });
+      if (res.status === 401) return handleUnauthorized();
       toast.success("تم التحديث بنجاح");
     } else {
-      await fetch(`${API_URL}/products`, { method: "POST", body: formData });
+      const res = await fetch(`${API_URL}/products`, { 
+        method: "POST", 
+        headers: getAuthHeaders(null),
+        body: formData 
+      });
+      if (res.status === 401) return handleUnauthorized();
       toast.success("تمت الإضافة بنجاح");
     }
+
     fetchProducts();
     resetForm();
   };
 
   const deleteProduct = async (id) => {
     try {
-      await fetch(`${API_URL}/products/${id}`, { method: "DELETE" });
+      const res = await fetch(`${API_URL}/products/${id}`, { 
+        method: "DELETE",
+        headers: getAuthHeaders()
+      });
+      if (res.status === 401) return handleUnauthorized();
       fetchProducts();
       toast.success("تم حذف المنتج بنجاح");
       setShowProductDeleteConfirm(null);
     } catch {
+
       toast.error("حدث خطأ أثناء الحذف");
     }
   };
@@ -151,69 +197,93 @@ function Admin() {
   // === Order Actions ===
   const acceptOrder = async (id) => {
     try {
-      await fetch(`${API_URL}/orders/${id}`, { method: "PUT" });
+      const res = await fetch(`${API_URL}/orders/${id}`, { 
+        method: "PUT",
+        headers: getAuthHeaders()
+      });
+      if (res.status === 401) return handleUnauthorized();
       fetchOrders();
       toast.success("تم قبول الطلب");
     } catch { toast.error("حدث خطأ"); }
   };
 
+
   const updateOrderStatus = async (id, status) => {
     try {
-      await fetch(`${API_URL}/orders/${id}`, {
+      const res = await fetch(`${API_URL}/orders/${id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ status })
       });
+      if (res.status === 401) return handleUnauthorized();
       fetchOrders();
       const labels = { archived: "تمت الأرشفة", rejected: "تم الرفض", pending: "أُعيد للانتظار", accepted: "تم القبول" };
       toast.success(labels[status] || "تم التحديث");
     } catch { toast.error("حدث خطأ"); }
   };
 
+
   const deleteOrder = async (id) => {
     try {
-      await fetch(`${API_URL}/orders/${id}`, { method: "DELETE" });
+      const res = await fetch(`${API_URL}/orders/${id}`, { 
+        method: "DELETE",
+        headers: getAuthHeaders()
+      });
+      if (res.status === 401) return handleUnauthorized();
       fetchOrders();
       toast.success("تم حذف الطلب");
       setShowDeleteConfirm(null);
     } catch { toast.error("حدث خطأ"); }
+
   };
 
   const deleteSelectedOrders = async () => {
     try {
       for (const id of selectedOrders) {
-        await fetch(`${API_URL}/orders/${id}`, { method: "DELETE" });
+        const res = await fetch(`${API_URL}/orders/${id}`, { 
+          method: "DELETE",
+          headers: getAuthHeaders()
+        });
+        if (res.status === 401) return handleUnauthorized();
       }
       setSelectedOrders([]);
       fetchOrders();
       toast.success(`تم حذف ${selectedOrders.length} طلب`);
       setShowDeleteConfirm(null);
     } catch { toast.error("حدث خطأ"); }
+
   };
 
   const deleteAllOrders = async () => {
     try {
-      await fetch(`${API_URL}/orders`, { method: "DELETE" });
+      const res = await fetch(`${API_URL}/orders`, { 
+        method: "DELETE" ,
+        headers: getAuthHeaders()
+      });
+      if (res.status === 401) return handleUnauthorized();
       setOrders([]);
       setSelectedOrders([]);
       toast.success("تم حذف جميع الطلبات");
       setShowDeleteConfirm(null);
     } catch { toast.error("حدث خطأ"); }
+
   };
 
   const archiveSelectedOrders = async () => {
     try {
       for (const id of selectedOrders) {
-        await fetch(`${API_URL}/orders/${id}`, {
+        const res = await fetch(`${API_URL}/orders/${id}`, {
           method: "PATCH",
-          headers: { "Content-Type": "application/json" },
+          headers: getAuthHeaders(),
           body: JSON.stringify({ status: "archived" })
         });
+        if (res.status === 401) return handleUnauthorized();
       }
       setSelectedOrders([]);
       fetchOrders();
       toast.success("تمت أرشفة الطلبات المحددة");
     } catch { toast.error("حدث خطأ"); }
+
   };
 
   const toggleOrderSelection = (id) => {

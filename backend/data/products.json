@@ -7,13 +7,6 @@
     "isOffer": false
   },
   {
-    "id": 1776237761571,
-    "name": "عسل مع المكسرات ",
-    "price": "15000",
-    "image": "https://konoz-alyamen.onrender.com/uploads/1776237761567-photo_2026-04-15_10-19-49.jpg",
-    "isOffer": true
-  },
-  {
     "id": 1776237792923,
     "name": "عسل بلدي درجة اولى",
     "price": "25000",
@@ -68,12 +61,5 @@
     "price": "45000",
     "image": "https://konoz-alyamen.onrender.com/uploads/1776238099521-photo_2026-04-15_10-20-47.jpg",
     "isOffer": false
-  },
-  {
-    "id": 1776238206297,
-    "name": "عسل عصيمي درجة ثانية",
-    "price": "15000",
-    "image": "https://konoz-alyamen.onrender.com/uploads/1776238206293-photo_2026-04-15_10-21-03.jpg",
-    "isOffer": true
   }
 ]

@@ -8,11 +8,10 @@ import toast from "react-hot-toast"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 
-// 🔐 بيانات الأدمن المحلي
-const ADMIN_USERNAME = "hamza"
-const ADMIN_PASSWORD = "2120"
+import API_URL from "../config"
 
 function Login() {
+
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [isRegister, setIsRegister] = useState(false)
@@ -43,14 +42,38 @@ function Login() {
     setIsLoading(true)
     const loadingId = toast.loading("⏳ جاري التحقق...")
 
-    // 🔐 التحقق من الأدمن المحلي أولاً
-    if (!isRegister && email === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-      localStorage.setItem("adminUser", JSON.stringify({ email: "hamza", isAdmin: true }))
-      toast.dismiss(loadingId)
-      toast.success("✅ مرحباً بك يا أدمن!")
-      window.dispatchEvent(new Event("adminLogin"))
-      navigate(redirect)
-      setIsLoading(false)
+    // 🔐 التحقق من الأدمن عبر السيرفر
+    if (!isRegister && isAdminLogin) {
+      try {
+        const response = await fetch(`${API_URL}/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password })
+        })
+        
+        const data = await response.json()
+
+        if (response.ok && data.token) {
+          sessionStorage.setItem("adminUser", JSON.stringify({ 
+            email: "admin@konoz.com", 
+            isAdmin: true,
+            token: data.token 
+          }))
+          toast.dismiss(loadingId)
+          toast.success("✅ مرحباً بك يا أدمن!")
+          window.dispatchEvent(new Event("adminLogin"))
+          navigate(redirect)
+
+        } else {
+          toast.dismiss(loadingId)
+          toast.error("❌ " + (data.message || "بيانات الأدمن غير صحيحة"))
+        }
+      } catch (err) {
+        toast.dismiss(loadingId)
+        toast.error("❌ فشل الاتصال بالسيرفر")
+      } finally {
+        setIsLoading(false)
+      }
       return
     }
 
