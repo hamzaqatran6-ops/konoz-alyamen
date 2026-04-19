@@ -158,13 +158,36 @@ function Login() {
             
             <p className="text-gray-600 mt-2 text-sm font-medium">
               {isAdminLogin 
-                ? "أدخل بياناتك للوصول إلى لوحة التحكم"
+                ? "دخول مخصص لمدير المتجر فقط"
                 : isRegister 
-                  ? "انضم إلى عائلة عسل ومكسرات" 
-                  : "مرحباً بعودتك إلى متجر عسل ومكسرات"
+                  ? "انضم إلى عائلة كنوز اليمن" 
+                  : "مرحباً بعودتك إلى كنوز اليمن"
               }
             </p>
           </div>
+
+          {/* 🔄 زر التبديل بين الأدمن والمستخدم */}
+          <div className="flex justify-center mb-6">
+            <button
+              onClick={() => {
+                const params = new URLSearchParams(searchParams);
+                if (isAdminLogin) {
+                  params.delete("admin");
+                } else {
+                  params.set("admin", "true");
+                }
+                navigate(`/login?${params.toString()}`);
+              }}
+              className={`px-4 py-2 rounded-full text-xs font-bold transition-all shadow-sm ${
+                isAdminLogin 
+                ? "bg-amber-100 text-amber-700 hover:bg-amber-200" 
+                : "bg-purple-100 text-purple-700 hover:bg-purple-200"
+              }`}
+            >
+              {isAdminLogin ? "← التبديل لدخول الزبائن" : "⚙️ دخول لوحة الإدارة"}
+            </button>
+          </div>
+
 
           <form onSubmit={handleAuth} className="space-y-5" autoComplete="off">
             <div className="relative">
@@ -222,20 +245,25 @@ function Login() {
             </motion.button>
           </form>
 
-          {/* Register toggle - only for non-admin login */}
-          {!isAdminLogin && (
-            <div className="mt-8 text-center text-sm font-medium text-gray-600">
-              <p>
-                {isRegister ? "لديك حساب بالفعل؟ " : "ليس لديك حساب؟ "}
-                <button
-                  onClick={() => setIsRegister(!isRegister)}
-                  className="text-amber-600 hover:text-orange-600 transition-colors font-bold select-none cursor-pointer"
-                >
-                  {isRegister ? "سجل دخولك من هنا" : "أنشئ حساباً الآن"}
-                </button>
-              </p>
-            </div>
-          )}
+          {/* Register toggle */}
+          <div className="mt-8 text-center text-sm font-medium text-gray-600">
+            <p>
+              {isAdminLogin ? (
+                <span className="text-xs text-gray-400">حسابات الإدارة يتم تعيينها من السيرفر فقط</span>
+              ) : (
+                <>
+                  {isRegister ? "لديك حساب بالفعل؟ " : "ليس لديك حساب؟ "}
+                  <button
+                    onClick={() => setIsRegister(!isRegister)}
+                    className="text-amber-600 hover:text-orange-600 transition-colors font-bold select-none cursor-pointer"
+                  >
+                    {isRegister ? "سجل دخولك من هنا" : "أنشئ حساباً الآن"}
+                  </button>
+                </>
+              )}
+            </p>
+          </div>
+
 
           {/* Back to home */}
           <div className="mt-4 text-center">

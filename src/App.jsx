@@ -25,9 +25,10 @@ function App() {
 
 
     const unsubscribe = onAuthStateChanged(auth, (u) => {
-      const localAdmin = JSON.parse(localStorage.getItem("adminUser"))
-      if (localAdmin && localAdmin.isAdmin) {
-        setUser({ email: localAdmin.email, isAdmin: true, isLocalAdmin: true })
+      // إذا كان هناك أدمن مخزن في الجلسة، نفضله على مستخدم Firebase العادي لهذه الجلسة
+      const sessionAdmin = JSON.parse(sessionStorage.getItem("adminUser"))
+      if (sessionAdmin && sessionAdmin.isAdmin && sessionAdmin.token) {
+        setUser({ email: sessionAdmin.email, isAdmin: true, isLocalAdmin: true, token: sessionAdmin.token })
       } else if (u) {
         setUser(u)
       } else {
@@ -35,6 +36,7 @@ function App() {
       }
       setLoading(false)
     })
+
 
     const handleAdminLogin = () => {
       const adminUser = JSON.parse(sessionStorage.getItem("adminUser"))
