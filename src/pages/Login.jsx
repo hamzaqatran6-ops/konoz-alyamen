@@ -109,18 +109,25 @@ function Login() {
 
       toast.dismiss(loadingId)
       
-      // نستخدم التحويل الكامل لضمان مزامنة حالة Firebase في كل أجزاء المتصفح
+      // نستخدم التحويل الكامل لضمان مزامنة حالة Firebase في كل أجزاء المتصفح وبناء الرابط بشكل صحيح
       setTimeout(() => {
-        window.location.href = redirect
+        const origin = window.location.origin
+        window.location.href = origin + (redirect.startsWith("/") ? redirect : "/" + redirect)
       }, 800)
+
 
 
     } catch (err) {
       toast.dismiss(loadingId)
       let errorMsg = "حدث خطأ ما."
       if (err.code === 'auth/email-already-in-use') errorMsg = "البريد الإلكتروني مستخدم مسبقاً."
-      if (err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') errorMsg = "البريد الإلكتروني أو كلمة المرور غير صحيحة."
+      else if (err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') errorMsg = "البريد الإلكتروني أو كلمة المرور غير صحيحة."
+      else if (err.code === 'auth/invalid-email') errorMsg = "تنسيق البريد الإلكتروني غير صحيح."
+      else if (err.code) errorMsg = `خطأ تقني: (${err.code})` // إظهار الكود التقني للمساعدة في التشخيص
+      
       toast.error("❌ " + errorMsg)
+      console.error("Firebase Auth Error:", err)
+
       
       // 🧹 إفراغ الحقول عند الخطأ لضمان الخصوصية
       setEmail("")
@@ -217,8 +224,9 @@ function Login() {
               </div>
               <input
                 type="text"
-                placeholder={isAdminLogin ? "اسم المستخدم" : "اسم المستخدم أو البريد الإلكتروني"}
+                placeholder={isAdminLogin ? "اسم المستخدم" : "البريد الإلكتروني (Gmail/Outlook...)"}
                 className="w-full pl-4 pr-10 py-3 bg-white/50 border border-amber-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white transition-all duration-300 placeholder-gray-400 text-gray-800"
+
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required

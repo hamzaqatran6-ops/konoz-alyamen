@@ -35,10 +35,16 @@ function App() {
 
 
     const unsubscribe = onAuthStateChanged(auth, (u) => {
-      // إذا كان هناك أدمن مخزن في الجلسة، نفضله على مستخدم Firebase العادي لهذه الجلسة
+      // إعطاء الأولوية لجلسة الأدمن إذا كانت موجودة وصحيحة
       const sessionAdmin = JSON.parse(sessionStorage.getItem("adminUser"))
+      
       if (sessionAdmin && sessionAdmin.isAdmin && sessionAdmin.token) {
-        setUser({ email: sessionAdmin.email, isAdmin: true, isLocalAdmin: true, token: sessionAdmin.token })
+        setUser({ 
+          email: sessionAdmin.email, 
+          isAdmin: true, 
+          isLocalAdmin: true, 
+          token: sessionAdmin.token 
+        })
       } else if (u) {
         setUser(u)
       } else {
@@ -46,6 +52,7 @@ function App() {
       }
       setLoading(false)
     })
+
 
 
     const handleAdminLogin = () => {
