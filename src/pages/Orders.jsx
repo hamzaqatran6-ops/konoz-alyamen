@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import API_URL from "../config"
 
 function Orders() {
 
@@ -6,7 +7,7 @@ function Orders() {
 
   // 📥 جلب الطلبات
   const fetchOrders = () => {
-    fetch("http://localhost:5000/orders")
+    fetch(`${API_URL}/orders`)
       .then(res => res.json())
       .then(data => {
         console.log("ORDERS:", data) // للتأكد
@@ -20,7 +21,7 @@ function Orders() {
 
   // ✅ قبول الطلب
   const acceptOrder = async (id) => {
-    await fetch(`http://localhost:5000/orders/${id}`, {
+    await fetch(`${API_URL}/orders/${id}`, {
       method: "PUT"
     })
 

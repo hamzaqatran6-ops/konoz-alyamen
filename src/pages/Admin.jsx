@@ -159,7 +159,7 @@ function Admin() {
 
   const updateOrderStatus = async (id, status) => {
     try {
-      await fetch(`http://localhost:5000/orders/${id}`, {
+      await fetch(`${API_URL}/orders/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status })
@@ -172,7 +172,7 @@ function Admin() {
 
   const deleteOrder = async (id) => {
     try {
-      await fetch(`http://localhost:5000/orders/${id}`, { method: "DELETE" });
+      await fetch(`${API_URL}/orders/${id}`, { method: "DELETE" });
       fetchOrders();
       toast.success("تم حذف الطلب");
       setShowDeleteConfirm(null);
@@ -182,7 +182,7 @@ function Admin() {
   const deleteSelectedOrders = async () => {
     try {
       for (const id of selectedOrders) {
-        await fetch(`http://localhost:5000/orders/${id}`, { method: "DELETE" });
+        await fetch(`${API_URL}/orders/${id}`, { method: "DELETE" });
       }
       setSelectedOrders([]);
       fetchOrders();
@@ -204,7 +204,7 @@ function Admin() {
   const archiveSelectedOrders = async () => {
     try {
       for (const id of selectedOrders) {
-        await fetch(`http://localhost:5000/orders/${id}`, {
+        await fetch(`${API_URL}/orders/${id}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ status: "archived" })
