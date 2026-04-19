@@ -67,12 +67,17 @@ function Admin() {
     })
       .then((res) => {
         if (res.status === 401) return handleUnauthorized();
+        if (res.status === 429) throw new Error("429");
         return res.json();
       })
       .then((data) => {
-        if (!data) return;
-        const latest = data[data.length - 1];
+        // حماية فائقة: التأكد من أن البيانات مصفوفة وليست رسالة خطأ
+        if (!Array.isArray(data)) {
+            console.error("Orders data is not an array:", data);
+            return;
+        }
 
+        const latest = data[data.length - 1];
 
         if (isFirstLoad.current) {
           isFirstLoad.current = false;
@@ -88,8 +93,14 @@ function Admin() {
 
         setOrders(data);
       })
-      .catch(err => console.error("Error fetching orders:", err));
+      .catch(err => {
+          console.error("Error fetching orders:", err);
+          if (err.message === "429") {
+              toast.error("عدد طلبات كبير جداً، يرجى الانتظار قليلاً", { id: "rate-limit" });
+          }
+      });
   };
+
 
   const showNotification = (order) => {
     toast.dismiss();
@@ -130,18 +141,56 @@ function Admin() {
   useEffect(() => {
     fetchProducts();
     fetchOrders();
-    const interval = setInterval(fetchOrders, 5000);
+    // تقليل معدل التحديث إلى 45 ثانية لمنع حظر الـ IP (Rate Limiting)
+    const interval = setInterval(fetchOrders, 45000);
     return () => clearInterval(interval);
   }, []);
 
+
   // === Product CRUD ===
+  const compressImage = (file) => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target.result;
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          const MAX_WIDTH = 1000;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          canvas.toBlob((blob) => {
+            resolve(new File([blob], file.name, { type: "image/jpeg" }));
+          }, "image/jpeg", 0.7); // 70% quality
+        };
+      };
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const formData = new FormData();
     formData.append("name", name);
     formData.append("price", price);
     formData.append("isOffer", isOffer);
-    if (image) formData.append("image", image);
+    
+    if (image) {
+      const compressed = await compressImage(image);
+      formData.append("image", compressed);
+    }
+
 
     if (editId) {
       const res = await fetch(`${API_URL}/products/${editId}`, { 

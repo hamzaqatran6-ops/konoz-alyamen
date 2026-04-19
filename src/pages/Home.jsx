@@ -1,6 +1,7 @@
 import { motion } from "framer-motion"
 import { useNavigate } from "react-router-dom"
 import honeyImage from "../assets/honey.jpg"
+import SEO from "../components/SEO"
 
 function Home() {
   const navigate = useNavigate()
@@ -21,6 +22,10 @@ function Home() {
 
   return (
     <div className="bg-amber-50 min-h-screen font-sans" dir="rtl">
+      <SEO 
+        title="الرئيسية" 
+        description="مرحباً بكم في كنوز اليمن، وجهتكم المفضلة لأجود أنواع العسل اليمني والمكسرات." 
+      />
 
       {/* 🔥 Hero Section */}
       <div className="relative h-[80vh] min-h-[500px] max-h-[700px] flex items-center justify-center overflow-hidden">

@@ -49,6 +49,8 @@ function ProductCard({ product, addToCart }) {
     return () => unsubscribe()
   }, [])
 
+  const [imageLoaded, setImageLoaded] = useState(false)
+
   const handleAdd = () => {
     if (!isLoggedIn) {
       setShowLoginPrompt(true)
@@ -66,6 +68,25 @@ function ProductCard({ product, addToCart }) {
 
   return (
     <>
+      <style>{`
+        @keyframes shimmer {
+          100% { transform: translateX(100%); }
+        }
+        .shimmer-bg {
+          background: #f1f5f9;
+          position: relative;
+          overflow: hidden;
+        }
+        .shimmer-bg::after {
+          content: "";
+          position: absolute;
+          inset: 0;
+          transform: translateX(-100%);
+          background-image: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+          animation: shimmer 1.5s infinite;
+        }
+      `}</style>
+
       {/* Login Prompt Modal for Adding to Cart */}
       <AnimatePresence>
         {showLoginPrompt && (
@@ -113,12 +134,16 @@ function ProductCard({ product, addToCart }) {
 
       <div className="bg-white rounded-2xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:shadow-[0_8px_30px_-4px_rgba(212,175,55,0.2)] border border-gray-100 hover:border-amber-200 transition-all duration-300 overflow-hidden group flex flex-col">
         {/* 🖼️ Product Image */}
-        <div className="relative overflow-hidden aspect-[4/3] bg-gray-50 flex items-center justify-center">
+        <div className={`relative overflow-hidden aspect-[4/3] flex items-center justify-center ${!imageLoaded ? "shimmer-bg" : "bg-gray-50"}`}>
           <img
             src={product.image}
             alt={product.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+            loading="lazy"
+            decoding="async"
+            onLoad={() => setImageLoaded(true)}
+            className={`w-full h-full object-cover group-hover:scale-105 transition-all duration-700 ease-out ${imageLoaded ? "opacity-100" : "opacity-0"}`}
           />
+
           
           {/* 🔥 Offer Badge */}
           {product.isOffer && (

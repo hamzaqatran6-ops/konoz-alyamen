@@ -25,9 +25,10 @@ app.use(express.json())
 // 🛑 الطبقة 3: منع الهجمات العشوائية (Rate Limiting)
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, 
-  max: 100, 
+  max: 500, // زيادة الحد للسماح بلوحة الإدارة بالتحديث المستمر
   message: { message: "عدد طلبات كبير جداً، يرجى المحاولة لاحقاً" }
 })
+
 
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -63,8 +64,10 @@ const sanitize = (text) => {
   return text
     .replace(/<script\b[^>]*>([\s\S]*?)<\/script>/gmi, "") // حذف السكربتات
     .replace(/<\/?[^>]+(>|$)/g, "") // حذف أي تاجات HTML
+    .replace(/[;\"\'\%\&\(\)\<\>\\]/g, (c) => "") // تنظيف إضافي للرموز الخطرة
     .trim()
 }
+
 
 const sanitizeMiddleware = (req, res, next) => {
   if (req.body) {

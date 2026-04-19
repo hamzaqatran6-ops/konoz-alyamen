@@ -22,6 +22,10 @@ const SparklesIcon = ({ className, size = 16 }) => (
   </svg>
 )
 
+import { SkeletonList } from "../components/Skeleton"
+import cacheService from "../utils/cacheService"
+import SEO from "../components/SEO"
+
 function Products() {
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
@@ -29,13 +33,40 @@ function Products() {
   const [filter, setFilter] = useState("all") // all, offers
 
   useEffect(() => {
-    fetch(`${API_URL}/products`)
-      .then(res => res.json())
-      .then(data => {
-        setProducts(data)
-        setLoading(false)
-      })
+    // 💾 التحقق من الكاش أولاً لتسريع التحميل
+    const cachedData = cacheService.get("products")
+    if (cachedData) {
+      setProducts(cachedData)
+      setLoading(false)
+      // تحديث البيانات في الخلفية (Background Revalidation)
+      refreshProducts()
+    } else {
+      refreshProducts()
+    }
   }, [])
+
+  const refreshProducts = () => {
+    fetch(`${API_URL}/products`)
+      .then(res => {
+        if (!res.ok) throw new Error("Fetch failed");
+        return res.json();
+      })
+      .then(data => {
+        if (Array.isArray(data)) {
+          setProducts(data);
+          cacheService.set("products", data);
+        } else {
+          setProducts([]);
+        }
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Error fetching products:", err);
+        setLoading(false);
+      });
+  }
+
+
 
   const addToCart = (product) => {
     const cart = JSON.parse(localStorage.getItem("cart")) || []
@@ -58,6 +89,7 @@ function Products() {
 
   return (
     <div className="min-h-screen bg-gray-50/50 pb-20" dir="rtl">
+      <SEO title="المنتجات" description="تصفح تشكيلتنا الفاخرة من العسل اليمني الطبيعي والمكسرات." />
 
       {/* 🌟 Premium Hero Section */}
       <div className="relative bg-gradient-to-b from-amber-50 to-transparent pt-12 pb-16 overflow-hidden">
@@ -138,11 +170,11 @@ function Products() {
       {/* 🛍️ Products Grid */}
       <div className="container mx-auto px-4">
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-4">
-            <div className="w-12 h-12 border-4 border-amber-200 border-t-amber-500 rounded-full animate-spin" />
-            <p className="text-gray-500 font-medium animate-pulse">جاري تحضير المنتجات الفاخرة...</p>
+          <div className="py-10">
+            <SkeletonList count={8} />
           </div>
         ) : filteredProducts.length === 0 ? (
+
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}

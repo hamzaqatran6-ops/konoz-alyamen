@@ -13,6 +13,8 @@ const TrashIcon = () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24"
 const EditIcon = () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 113 3L15.414 11l-3 3-3-3 7.071-7.071z" /></svg>
 const XIcon = () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
 
+import SEO from "../components/SEO"
+
 function MyOrders() {
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
@@ -35,11 +37,24 @@ function MyOrders() {
     try {
       setLoading(true)
       const res = await fetch(`${API_URL}/orders/user/${uid}`)
+      
+      if (res.status === 429) {
+          toast.error("طلبات كثيرة جداً، يرجى المحاولة بعد قليل", { id: "rate-limit" });
+          setOrders([]);
+          return;
+      }
+
       const data = await res.json()
-      setOrders(data.sort((a, b) => b.id - a.id))
+      
+      if (Array.isArray(data)) {
+          setOrders(data.sort((a, b) => b.id - a.id))
+      } else {
+          console.error("Orders data is not an array:", data);
+          setOrders([]);
+      }
     } catch (err) {
       console.error("Error fetching orders:", err)
-      toast.error("حدث خطأ أثناء تحميل الطلبات")
+      toast.error("تعذر تحميل الطلبات حالياً")
     } finally {
       setLoading(false)
     }
@@ -93,6 +108,8 @@ function MyOrders() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20 px-2 sm:px-4" dir="rtl">
+      <SEO title="طلباتي" />
+
       {/* Header */}
       <div className="max-w-6xl mx-auto py-10 flex justify-between items-end">
           <div>

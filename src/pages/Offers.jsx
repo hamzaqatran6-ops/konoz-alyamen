@@ -40,19 +40,47 @@ const ClockIcon = ({ className, size = 16 }) => (
   </svg>
 )
 
+import { SkeletonList } from "../components/Skeleton"
+import cacheService from "../utils/cacheService"
+
+import SEO from "../components/SEO"
+
 function Offers() {
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch(`${API_URL}/products`)
-      .then(res => res.json())
-      .then(data => {
-        setProducts(data)
-        setLoading(false)
-      })
-      .catch(() => setLoading(false))
+    const cached = cacheService.get("products")
+    if (cached) {
+      setProducts(cached)
+      setLoading(false)
+      refreshProducts()
+    } else {
+      refreshProducts()
+    }
   }, [])
+
+  const refreshProducts = () => {
+    fetch(`${API_URL}/products`)
+      .then(res => {
+          if (!res.ok) throw new Error("Fetch failed");
+          return res.json();
+      })
+      .then(data => {
+        if (Array.isArray(data)) {
+            setProducts(data);
+            cacheService.set("products", data);
+        } else {
+            setProducts([]);
+        }
+        setLoading(false);
+      })
+      .catch(err => {
+          console.error("Error fetching offers:", err);
+          setLoading(false);
+      });
+  }
+
 
   const addToCart = (product) => {
     const cart = JSON.parse(localStorage.getItem("cart")) || []
@@ -70,6 +98,8 @@ function Offers() {
 
   return (
     <div className="min-h-screen bg-gray-50/50 pb-20" dir="rtl">
+      <SEO title="العروض المميزة" description="اغتنم الفرصة مع عروض كنوز اليمن الحصرية على أجود أنواع العسل." />
+
 
       {/* 🔥 Premium Hero Section with Gradient */}
       <div className="relative bg-gradient-to-b from-red-50 via-orange-50 to-transparent pt-12 pb-20 overflow-hidden">
@@ -191,16 +221,11 @@ function Offers() {
       {/* 🛍️ Products Grid */}
       <div className="container mx-auto px-4">
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-4">
-            <div className="relative">
-              <div className="w-16 h-16 border-4 border-red-200 border-t-red-500 rounded-full animate-spin" />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <FireIcon className="text-red-400 animate-pulse" size={20} />
-              </div>
-            </div>
-            <p className="text-gray-500 font-medium animate-pulse">جاري تحميل العروض الحصرية...</p>
+          <div className="py-10">
+            <SkeletonList count={4} />
           </div>
         ) : offerProducts.length === 0 ? (
+
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
