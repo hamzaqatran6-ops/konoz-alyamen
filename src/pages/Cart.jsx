@@ -98,10 +98,17 @@ function Cart() {
     formData.append("location", location)
     formData.append("paymentMethod", paymentMethod)
     formData.append("cart", JSON.stringify(cart))
+    
+    // إرسال هوية المستخدم من فايربيس للربط
+    if (auth.currentUser) {
+      formData.append("userId", auth.currentUser.uid)
+      formData.append("userEmail", auth.currentUser.email)
+    }
 
     if (paymentImage) {
       formData.append("paymentImage", paymentImage)
     }
+
 
     toast.loading("جاري إرسال الطلب...", { id: "submit" });
 

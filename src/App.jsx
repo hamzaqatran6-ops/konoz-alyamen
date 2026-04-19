@@ -11,6 +11,8 @@ import Offers from "./pages/Offers"
 import Cart from "./pages/Cart"
 import Admin from "./pages/Admin"
 import Login from "./pages/Login"
+import MyOrders from "./pages/MyOrders"
+import Dashboard from "./pages/Dashboard"
 
 function App() {
   const [user, setUser] = useState(null)
@@ -91,6 +93,8 @@ function App() {
         <Route path="/products" element={<Products />} />
         <Route path="/offers" element={<Offers />} />
         <Route path="/cart" element={<Cart />} />
+        <Route path="/my-orders" element={<MyOrders />} />
+        <Route path="/dashboard" element={<Dashboard />} />
 
         {/* 🔓 صفحة تسجيل الدخول */}
         <Route path="/login" element={<Login />} />

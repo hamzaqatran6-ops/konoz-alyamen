@@ -136,7 +136,14 @@ function Navbar() {
     { path: "/", label: "الرئيسية", icon: <HomeIcon /> },
     { path: "/products", label: "المنتجات", icon: <PackageIcon /> },
     { path: "/offers", label: "العروض", icon: <TagIcon /> },
+    ...(isLoggedIn && !isAdmin ? [{ path: "/my-orders", label: "طلباتي", icon: <IconList /> }] : []),
   ]
+
+  // Helper for mobile icon list
+  function IconList({ size = 18 }) {
+    return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/></svg>
+  }
+
 
   return (
     <nav

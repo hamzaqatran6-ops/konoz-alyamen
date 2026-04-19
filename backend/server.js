@@ -205,6 +205,9 @@ app.post("/orders", upload.single("paymentImage"), (req, res) => {
 
   const newOrder = {
     id: Date.now(),
+    orderId: `KNZ-${Math.floor(1000 + Math.random() * 9000)}`, // رقم طلب مميز
+    userId: req.body.userId || null,
+    userEmail: req.body.userEmail || null,
     name: req.body.name,
     phone: req.body.phone,
     location: req.body.location,
@@ -213,14 +216,25 @@ app.post("/orders", upload.single("paymentImage"), (req, res) => {
     paymentImage: req.file
       ? `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`
       : null,
-    status: "pending",
+    status: "pending", // قيد المراجعة
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    history: [{ status: "pending", date: new Date().toISOString(), note: "تم إنشاء الطلب" }]
   }
 
   orders.push(newOrder)
   saveJSON("orders.json", orders)
 
-  res.json({ message: "Order saved" })
+  res.json({ message: "Order saved", orderId: newOrder.orderId })
 })
+
+// 📥 جلب طلبات مستخدم معين (لصفحة طلباتي)
+app.get("/orders/user/:userId", (req, res) => {
+  const orders = readJSON("orders.json")
+  const userOrders = orders.filter(o => o.userId === req.params.userId)
+  res.json(userOrders)
+})
+
 
 // 📥 جلب الطلبات (🔥 أهم نقطة)
 app.get("/orders", authMiddleware, (req, res) => {
@@ -259,20 +273,40 @@ app.delete("/orders", authMiddleware, (req, res) => {
   res.json({ message: "All orders deleted" })
 })
 
-// 🔄 تحديث حالة الطلب (قبول / رفض / أرشفة)
-app.patch("/orders/:id", authMiddleware, (req, res) => {
+// 🔄 تحديث حالة الطلب أو التعديل
+app.patch("/orders/:id", (req, res) => {
   const orders = readJSON("orders.json")
-  const { status } = req.body
+  const { status, cancelledBy, name, phone, location } = req.body
+  
+  let found = false
+  const updated = orders.map(order => {
+    if (order.id == req.params.id) {
+      found = true
+      const newStatus = status || order.status
+      
+      // إذا تم الإلغاء، نسجل من قام بذلك
+      const cancellationInfo = cancelledBy ? { cancelledBy } : {}
+      
+      return { 
+        ...order, 
+        ...cancellationInfo,
+        status: newStatus,
+        name: name || order.name,
+        phone: phone || order.phone,
+        location: location || order.location,
+        updatedAt: new Date().toISOString(),
+        history: [...(order.history || []), { status: newStatus, date: new Date().toISOString(), note: cancelledBy ? `تم الإلغاء بواسطة ${cancelledBy}` : "تحديث الحالة" }]
+      }
+    }
+    return order
+  })
 
-  const updated = orders.map(order =>
-    order.id == req.params.id
-      ? { ...order, status: status || order.status }
-      : order
-  )
+  if (!found) return res.status(404).json({ message: "الطلب غير موجود" })
 
   saveJSON("orders.json", updated)
-  res.json({ message: "Order status updated" })
+  res.json({ message: "Order updated successfully" })
 })
+
 
 // 🛡️ الطبقة 7: معالجة الأخطاء الآمنة (Global Error Handler)
 app.use((err, req, res, next) => {

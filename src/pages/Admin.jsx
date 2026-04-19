@@ -323,11 +323,14 @@ function Admin() {
 
   const orderFilterTabs = [
     { id: "all", label: "الكل", count: orders.length, color: "slate" },
-    { id: "pending", label: "معلقة", count: pendingOrders, color: "amber" },
-    { id: "accepted", label: "مقبولة", count: acceptedOrders, color: "green" },
-    { id: "archived", label: "مؤرشفة", count: archivedOrders, color: "blue" },
-    { id: "rejected", label: "مرفوضة", count: orders.filter(o => o.status === "rejected").length, color: "red" },
+    { id: "pending", label: "قيد المراجعة", count: orders.filter(o => o.status === "pending" || !o.status).length, color: "amber" },
+    { id: "confirmed", label: "تم التأكيد", count: orders.filter(o => o.status === "confirmed" || o.status === "accepted").length, color: "blue" },
+    { id: "processing", label: "جاري التجهيز", count: orders.filter(o => o.status === "processing").length, color: "indigo" },
+    { id: "shipped", label: "تم الشحن", count: orders.filter(o => o.status === "shipped").length, color: "violet" },
+    { id: "delivered", label: "تم التسليم", count: orders.filter(o => o.status === "delivered").length, color: "green" },
+    { id: "cancelled", label: "ملغي", count: orders.filter(o => o.status === "cancelled" || o.status === "rejected").length, color: "red" },
   ];
+
 
   // Icons
   const IconHome = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>;
@@ -339,18 +342,23 @@ function Admin() {
   // Status badge helper
   const statusBadge = (status) => {
     const map = {
-      accepted: { label: "مقبول", bg: "bg-green-100", text: "text-green-700", icon: "✓" },
-      archived: { label: "مؤرشف", bg: "bg-blue-100", text: "text-blue-700", icon: "📁" },
-      rejected: { label: "مرفوض", bg: "bg-red-100", text: "text-red-700", icon: "✕" },
+      pending: { label: "قيد المراجعة", bg: "bg-amber-100", text: "text-amber-700", icon: "⏳" },
+      confirmed: { label: "تم التأكيد", bg: "bg-blue-100", text: "text-blue-700", icon: "✅" },
+      accepted: { label: "تم التأكيد", bg: "bg-blue-100", text: "text-blue-700", icon: "✅" }, // توافق مع القديم
+      processing: { label: "جاري التجهيز", bg: "bg-indigo-100", text: "text-indigo-700", icon: "📦" },
+      shipped: { label: "تم الشحن", bg: "bg-violet-100", text: "text-violet-700", icon: "🚚" },
+      delivered: { label: "تم التسليم", bg: "bg-green-100", text: "text-green-700", icon: "🏁" },
+      cancelled: { label: "ملغي", bg: "bg-red-100", text: "text-red-700", icon: "✕" },
+      rejected: { label: "ملغي", bg: "bg-red-100", text: "text-red-700", icon: "✕" }, // توافق مع القديم
     };
-    const def = { label: "معلق", bg: "bg-amber-100", text: "text-amber-700", icon: "⏳" };
-    const s = map[status] || def;
+    const s = map[status] || map.pending;
     return (
-      <span className={`${s.bg} ${s.text} text-xs px-2.5 py-1 rounded-full font-bold inline-flex items-center gap-1`}>
+      <span className={`${s.bg} ${s.text} text-[10px] px-2.5 py-1 rounded-full font-bold inline-flex items-center gap-1`}>
         <span>{s.icon}</span> {s.label}
       </span>
     );
   };
+
 
   // Delete confirmation modal
   const DeleteModal = ({ title, message, onConfirm, onCancel }) => (
@@ -815,16 +823,24 @@ function Admin() {
                                   {order.name?.charAt(0)}
                                 </div>
                                 <div>
-                                  <h3 className="font-bold text-slate-800 text-lg">{order.name}</h3>
-                                  <div className="text-slate-500 text-sm flex flex-wrap items-center gap-3 mt-1">
-                                    <span className="flex items-center gap-1 font-mono">📱 {order.phone}</span>
-                                    {order.location && (
-                                      <a href={order.location} target="_blank" rel="noreferrer" className="text-blue-500 hover:underline flex items-center gap-1 bg-blue-50 px-2 py-0.5 rounded-md text-xs">
-                                        📍 الخريطة
-                                      </a>
-                                    )}
+                                    <h3 className="font-bold text-slate-800 text-lg flex items-center gap-2">
+                                      {order.name}
+                                      <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded italic font-normal">
+                                        {order.orderId || `#${order.id.toString().slice(-6)}`}
+                                      </span>
+                                    </h3>
+                                    <div className="text-slate-500 text-[10px] flex flex-wrap items-center gap-3 mt-1">
+                                      <span className="flex items-center gap-1 font-mono">📱 {order.phone}</span>
+                                      {order.userEmail && (
+                                        <span className="flex items-center gap-1">📧 {order.userEmail}</span>
+                                      )}
+                                      {order.location && (
+                                        <a href={order.location} target="_blank" rel="noreferrer" className="text-blue-500 hover:underline flex items-center gap-1 bg-blue-50 px-2 py-0.5 rounded-md">
+                                          📍 الخريطة
+                                        </a>
+                                      )}
+                                    </div>
                                   </div>
-                                </div>
                               </div>
                               
                               <div className="text-left flex flex-col items-end gap-2">
@@ -868,15 +884,26 @@ function Admin() {
                             {/* Footer Actions */}
                             <div className="p-4 border-t border-slate-100 bg-slate-50 flex flex-wrap gap-2 items-center justify-between mt-auto">
                               <div className="flex gap-2 flex-wrap">
-                                {/* قبول */}
-                                {order.status !== "accepted" && order.status !== "archived" && (
-                                  <button
-                                    onClick={() => acceptOrder(order.id)}
-                                    className="bg-green-600 hover:bg-green-700 text-white font-bold px-4 py-2 rounded-xl text-sm transition-colors flex items-center gap-1.5"
-                                  >
-                                    ✓ قبول
-                                  </button>
-                                )}
+                                <div className="flex gap-1.5 flex-wrap">
+                                  {order.status === "pending" && (
+                                    <button onClick={() => updateOrderStatus(order.id, "confirmed")} className="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-blue-700 transition-colors">تأكيد الطلب ✅</button>
+                                  )}
+                                  {order.status === "confirmed" && (
+                                    <button onClick={() => updateOrderStatus(order.id, "processing")} className="bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-indigo-700 transition-colors">جاري التجهيز 📦</button>
+                                  )}
+                                  {order.status === "processing" && (
+                                    <button onClick={() => updateOrderStatus(order.id, "shipped")} className="bg-violet-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-violet-700 transition-colors">تم الشحن 🚚</button>
+                                  )}
+                                  {order.status === "shipped" && (
+                                    <button onClick={() => updateOrderStatus(order.id, "delivered")} className="bg-green-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-green-700 transition-colors">تم التسليم 🏁</button>
+                                  )}
+                                  {order.status !== "cancelled" && order.status !== "delivered" && (
+                                    <button onClick={() => updateOrderStatus(order.id, "cancelled")} className="bg-red-50 text-red-600 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-red-100 transition-colors">إلغاء ✕</button>
+                                  )}
+                                  {order.cancelledBy && (
+                                    <span className="text-[10px] text-red-500 font-bold self-center">بواسطة: {order.cancelledBy}</span>
+                                  )}
+                                </div>
                                 {/* أرشفة */}
                                 {order.status !== "archived" && (
                                   <button
