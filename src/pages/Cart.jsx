@@ -18,15 +18,17 @@ function Cart() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    // التحقق من تسجيل الدخول (Firebase أو أدمن محلي)
-    const localAdmin = JSON.parse(localStorage.getItem("adminUser"))
-    if (localAdmin && localAdmin.isAdmin) {
+    // التحقق من تسجيل الدخول (Firebase أو أدمن محلي عبر الجلسة مؤقتاً)
+    const sessionAdmin = JSON.parse(sessionStorage.getItem("adminUser"))
+    if (sessionAdmin && sessionAdmin.isAdmin && sessionAdmin.token) {
       setIsLoggedIn(true)
     }
+
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      const admin = JSON.parse(localStorage.getItem("adminUser"))
-      setIsLoggedIn(!!(user || (admin && admin.isAdmin)))
+      const admin = JSON.parse(sessionStorage.getItem("adminUser"))
+      setIsLoggedIn(!!(user || (admin && admin.isAdmin && admin.token)))
     })
+
     return () => unsubscribe()
   }, [])
 

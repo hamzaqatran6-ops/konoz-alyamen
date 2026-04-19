@@ -35,10 +35,11 @@ function ProductCard({ product, addToCart }) {
   useEffect(() => {
     // التحقق من حالة تسجيل الدخول مرة واحدة عند التحميل والمتابعة مع تغييرات الحالة
     const checkAuth = () => {
-      const localAdmin = JSON.parse(localStorage.getItem("adminUser"))
-      if (localAdmin && localAdmin.isAdmin) return true
+      const sessionAdmin = JSON.parse(sessionStorage.getItem("adminUser"))
+      if (sessionAdmin && sessionAdmin.isAdmin && sessionAdmin.token) return true
       return !!auth.currentUser
     }
+
     
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setIsLoggedIn(checkAuth())

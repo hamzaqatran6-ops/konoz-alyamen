@@ -17,8 +17,12 @@ function App() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    // 🧹 تنظيف البيانات القديمة (Insecure Legacy Data)
+    localStorage.removeItem("adminUser")
+
     // التحقق من الأدمن المحلي أولاً (استخدام sessionStorage لزيادة الأمان)
     const adminUser = JSON.parse(sessionStorage.getItem("adminUser"))
+
     if (adminUser && adminUser.isAdmin && adminUser.token) {
       setUser({ email: adminUser.email, isAdmin: true, isLocalAdmin: true, token: adminUser.token })
     }
