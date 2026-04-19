@@ -39,10 +39,12 @@ const loginLimiter = rateLimit({
 app.use("/orders", apiLimiter) // حماية قسم الطلبات من الإغراق (Spam)
 
 
-// 🔒 إعدادات الحماية (Admin Security)
-const ADMIN_USERNAME = process.env.ADMIN_USERNAME || "hamza"
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "2120"
-const ADMIN_SECRET = process.env.ADMIN_SECRET || "hamza-secret-token-2026"
+// 🔒 إعدادات الحماية (Admin Security - Trimmed for safety)
+const ADMIN_USERNAME = (process.env.ADMIN_USERNAME || "hamza").trim()
+const ADMIN_PASSWORD = (process.env.ADMIN_PASSWORD || "2120").trim()
+const ADMIN_SECRET = (process.env.ADMIN_SECRET || "hamza-secret-token-2026").trim()
+const ADMIN_EMAIL_ALIAS = "admin@konoz.com" 
+
 
 // Middleware للتحقق من الصلاحيات
 const authMiddleware = (req, res, next) => {
@@ -122,15 +124,25 @@ app.get("/", (req, res) => {
   res.send("Server is working ✅")
 })
 
-// 🔐 تسجيل دخول الأدمن
+// 🔐 تسجيل دخول الأدمن بنظام "التحقق الذكي"
 app.post("/login", loginLimiter, (req, res) => {
   const { email, password } = req.body
-  if (email === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+  
+  // تحويل للتبسيط وضمان عدم وجود مسافات أو اختلاف في الأحرف
+  const inputIdentifier = (email || "").trim().toLowerCase()
+  const inputPassword = (password || "").trim()
+
+  const isUsernameMatch = inputIdentifier === ADMIN_USERNAME.toLowerCase()
+  const isEmailMatch = inputIdentifier === ADMIN_EMAIL_ALIAS.toLowerCase()
+  const isPasswordMatch = inputPassword === ADMIN_PASSWORD
+
+  if ((isUsernameMatch || isEmailMatch) && isPasswordMatch) {
     res.json({ token: ADMIN_SECRET, isAdmin: true })
   } else {
     res.status(401).json({ message: "بيانات الدخول غير صحيحة" })
   }
 })
+
 
 
 // 🛍️ المنتجات

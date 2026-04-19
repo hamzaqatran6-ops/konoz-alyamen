@@ -59,10 +59,11 @@ function Login() {
 
         if (response.ok && data.token) {
           sessionStorage.setItem("adminUser", JSON.stringify({ 
-            email: "admin@konoz.com", 
+            email: email.includes("@") ? email : `admin (${email})`, 
             isAdmin: true,
             token: data.token 
           }))
+
           toast.dismiss(loadingId)
           toast.success("✅ مرحباً بك يا أدمن!")
           window.dispatchEvent(new Event("adminLogin"))
