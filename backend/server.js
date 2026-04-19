@@ -10,11 +10,13 @@ app.use(helmet({
 
 // 🌐 الطبقة 4: قواعد الوصول (CORS) - تقييد المصادر
 const allowedOrigins = [
-  "http://localhost:5173", // تطوير
-  "http://localhost:3000",
-  "https://konoz-yemen.vercel.app", // استبدله برابطك الحقيقي
+  "http://localhost:5173", // تطوير Vite
+  "http://localhost:3000", // تطوير قديم
+  "https://konoz-yemen.vercel.app", 
+  "https://konoz-alyamen.vercel.app", // الموقع الفعلي
   /\.vercel\.app$/ // السماح بجميع روابط vercel الفرعية
 ]
+
 
 app.use(cors({
   origin: (origin, callback) => {

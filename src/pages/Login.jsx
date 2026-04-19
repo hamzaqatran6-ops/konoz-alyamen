@@ -42,6 +42,10 @@ function Login() {
     setIsLoading(true)
     const loadingId = toast.loading("⏳ جاري التحقق...")
 
+    // 🧹 تصفير أي جلسة قديمة لضمان عدم حدوث تضارب
+    sessionStorage.removeItem("adminUser")
+
+
     // 🔐 التحقق من الأدمن عبر السيرفر
     if (!isRegister && isAdminLogin) {
       try {
@@ -95,7 +99,12 @@ function Login() {
       }
 
       toast.dismiss(loadingId)
-      navigate(redirect)
+      
+      // تأخير بسيط للتأكد من مزامنة حالة Firebase قبل التحويل
+      setTimeout(() => {
+        navigate(redirect)
+      }, 500)
+
     } catch (err) {
       toast.dismiss(loadingId)
       let errorMsg = "حدث خطأ ما."
