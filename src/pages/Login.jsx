@@ -66,20 +66,29 @@ function Login() {
           toast.dismiss(loadingId)
           toast.success("✅ مرحباً بك يا أدمن!")
           window.dispatchEvent(new Event("adminLogin"))
-          navigate(redirect)
+          
+          // بدلاً من navigate، نستخدم تحويل الصفحة كاملاً لضمان تصفير الكاش وحالة React بالكامل
+          setTimeout(() => {
+            window.location.href = redirect
+          }, 800)
+
 
         } else {
           toast.dismiss(loadingId)
-          toast.error("❌ " + (data.message || "بيانات الأدمن غير صحيحة"))
+          const errorMsg = data.message || "بيانات الأدمن غير صحيحة"
+          toast.error("❌ " + errorMsg)
+          console.error("Admin Auth Failed:", data)
         }
       } catch (err) {
         toast.dismiss(loadingId)
-        toast.error("❌ فشل الاتصال بالسيرفر")
+        toast.error("❌ فشل الاتصال بالسيرفر. تأكد من أن السيرفر يعمل وحالة الـ CORS")
+        console.error("Fetch error:", err)
       } finally {
         setIsLoading(false)
       }
       return
     }
+
 
     // إذا كانت صفحة دخول الأدمن فقط، لا نسمح بـ Firebase login
     if (isAdminLogin) {
@@ -100,10 +109,11 @@ function Login() {
 
       toast.dismiss(loadingId)
       
-      // تأخير بسيط للتأكد من مزامنة حالة Firebase قبل التحويل
+      // نستخدم التحويل الكامل لضمان مزامنة حالة Firebase في كل أجزاء المتصفح
       setTimeout(() => {
-        navigate(redirect)
-      }, 500)
+        window.location.href = redirect
+      }, 800)
+
 
     } catch (err) {
       toast.dismiss(loadingId)

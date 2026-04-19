@@ -8,40 +8,27 @@ app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" } // للسماح بعرض الصور من السيرفر
 }))
 
-// 🌐 الطبقة 4: قواعد الوصول (CORS) - تقييد المصادر
-const allowedOrigins = [
-  "http://localhost:5173", // تطوير Vite
-  "http://localhost:3000", // تطوير قديم
-  "https://konoz-yemen.vercel.app", 
-  "https://konoz-alyamen.vercel.app", // الموقع الفعلي
-  /\.vercel\.app$/ // السماح بجميع روابط vercel الفرعية
-]
-
-
+// 🌐 الطبقة 4: قواعد الوصول (CORS) - السماح بالاتصال من أي مصدر يطلبه المستخدم (Reflective CORS)
 app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.some(pattern => typeof pattern === 'string' ? pattern === origin : pattern.test(origin))) {
-      callback(null, true)
-    } else {
-      callback(new Error("Not allowed by CORS"))
-    }
-  }
+  origin: true,
+  credentials: true
 }))
 
 app.use(express.json())
 
 // 🛑 الطبقة 3: منع الهجمات العشوائية (Rate Limiting)
 const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 دقيقة
-  max: 100, // حد أقصى 100 طلب من كل IP
+  windowMs: 15 * 60 * 1000, 
+  max: 100, 
   message: { message: "عدد طلبات كبير جداً، يرجى المحاولة لاحقاً" }
 })
 
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 10, // 10 محاولات دخول فقط كل 15 دقيقة
-  message: { message: "محاولات دخول كثيرة خاطئة، يرجى الانتظار 15 دقيقة" }
+  max: 30, // زيادة عدد المحاولات للتجربة (Relaxed for testing)
+  message: { message: "محاولات دخول كثيرة، يرجى الانتظار 15 دقيقة" }
 })
+
 
 app.use("/orders", apiLimiter) // حماية قسم الطلبات من الإغراق (Spam)
 

@@ -27,6 +27,12 @@ function App() {
       setUser({ email: adminUser.email, isAdmin: true, isLocalAdmin: true, token: adminUser.token })
     }
 
+    // 🛡️ حارس الأمان: التأكد من إيقاف شاشة التحميل حتى لو فشل Firebase في الرد سريعاً
+    const safetyTimeout = setTimeout(() => {
+      setLoading(false)
+    }, 3000)
+
+
 
     const unsubscribe = onAuthStateChanged(auth, (u) => {
       // إذا كان هناك أدمن مخزن في الجلسة، نفضله على مستخدم Firebase العادي لهذه الجلسة
@@ -53,8 +59,10 @@ function App() {
     window.addEventListener("adminLogin", handleAdminLogin)
     return () => {
       unsubscribe()
+      clearTimeout(safetyTimeout)
       window.removeEventListener("adminLogin", handleAdminLogin)
     }
+
   }, [])
 
   const isAdmin = () => {
